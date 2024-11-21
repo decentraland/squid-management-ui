@@ -1,1 +1,3 @@
-{}
+{
+  "VITE_REACT_APP_DCL_SQUID_MANAGEMENT_SERVER": "https://squid-management-server.decentraland.today"
+}
