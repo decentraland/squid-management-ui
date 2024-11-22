@@ -1,5 +1,5 @@
 {
-  "name": "@dcl/{{project_name}}-site",
+  "name": "@dcl/squid-management-ui-site",
   "version": "0.0.1",
   "description": "Starter template for Decentraland dApps Repositories",
   "main": "index.js",
