@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { config } from "../config"
 import { Squid } from "../types"
 
 export const useSquids = () => {
@@ -10,7 +11,7 @@ export const useSquids = () => {
     const fetchSquids = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_REACT_APP_DCL_SQUID_MANAGEMENT_SERVER}/list`
+          `${config.get("SQUID_MANAGEMENT_SERVER")}/list`
         )
         const data: Squid[] = await response.json()
         setSquids(data)

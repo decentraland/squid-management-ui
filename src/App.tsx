@@ -1,12 +1,6 @@
 import { useState } from "react"
 import { ThemeProvider, dark } from "decentraland-ui2/dist/theme"
-import {
-  Box,
-  CircularProgress,
-  CssBaseline,
-  Toolbar,
-  Typography,
-} from "@mui/material"
+import { Box, CircularProgress, Toolbar, Typography } from "@mui/material"
 import Sidebar from "./components/Sidebar"
 import SquidsTable from "./components/SquidsTable"
 import TopBar from "./components/TopBar"
@@ -25,7 +19,6 @@ const App = () => {
   return (
     <ThemeProvider theme={dark}>
       <Box sx={{ display: "flex", height: "100vh" }}>
-        <CssBaseline />
         <TopBar
           handleDrawerToggle={handleDrawerToggle}
           drawerWidth={drawerWidth}

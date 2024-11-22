@@ -18,7 +18,7 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from "@mui/material"
+} from "decentraland-ui2"
 import { Squid } from "../types"
 import { getGraphQLEndpoint } from "../utils"
 
