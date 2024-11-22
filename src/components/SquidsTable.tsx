@@ -1,4 +1,5 @@
 import { Fragment, useRef, useState } from "react"
+import { Network } from "@dcl/schemas"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
@@ -19,22 +20,42 @@ import {
   TableRow,
   Typography,
 } from "decentraland-ui2"
-import { Squid } from "../types"
+import { Squid, SquidMetrics } from "../types"
 import { getGraphQLEndpoint } from "../utils"
 
 interface SquidsTableProps {
   squids: Squid[]
+  promoteSquid: (id: string) => Promise<void>
+  stopSquid: (id: string) => Promise<void>
 }
 
 const parseProjectName = (name: string): string =>
   name.split("-squid-server-")[0]
 
+const renameNetwork = (network: Network): string => {
+  return network === Network.MATIC ? "POLYGON" : network
+}
+
 const renderStatusBadge = (status: string, color: string): JSX.Element => (
   <Chip label={status} size="small" sx={{ bgcolor: color, color: "#fff" }} />
 )
 
-const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
+const SquidsTable: React.FC<SquidsTableProps> = ({
+  squids,
+  promoteSquid,
+  stopSquid,
+}) => {
   const [selectedSquid, setSelectedSquid] = useState<string | null>(null)
+
+  const handlePromote = (id: string) => {
+    promoteSquid(id)
+    setSelectedSquid(null)
+  }
+
+  const handleStop = (id: string) => {
+    stopSquid(id)
+    setSelectedSquid(null)
+  }
   const menuAnchorRefs = useRef<{ [key: string]: HTMLElement | null }>({})
   const open = Boolean(selectedSquid)
 
@@ -46,7 +67,50 @@ const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
     setSelectedSquid(null)
   }
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState<{ [key: string]: boolean }>({})
+
+  const toggleRow = (squidName: string) => {
+    setIsOpen((prev) => ({
+      ...prev,
+      [squidName]: !prev[squidName],
+    }))
+  }
+
+  const renderChainData = (
+    metrics: {
+      [Network.ETHEREUM]: SquidMetrics
+      [Network.MATIC]: SquidMetrics
+    },
+    chain: Network.ETHEREUM | Network.MATIC
+  ) => {
+    const chainMetrics = metrics[chain]
+    if (!chainMetrics) return null
+
+    return (
+      <TableRow>
+        <TableCell>{renameNetwork(chain)}</TableCell>
+        <TableCell>{chainMetrics.sqd_processor_sync_eta_seconds}s</TableCell>
+        <TableCell>
+          {chainMetrics.sqd_processor_mapping_blocks_per_second.toFixed(2)}{" "}
+          blocks/s
+        </TableCell>
+        <TableCell>
+          {chainMetrics.sqd_processor_last_block} /{" "}
+          {chainMetrics.sqd_processor_chain_height}
+        </TableCell>
+        <TableCell>
+          {renderStatusBadge(
+            chainMetrics.sqd_processor_sync_eta_seconds === 0
+              ? "Synced"
+              : "Indexing",
+            chainMetrics.sqd_processor_sync_eta_seconds === 0
+              ? "green"
+              : "orange"
+          )}
+        </TableCell>
+      </TableRow>
+    )
+  }
 
   return (
     <TableContainer component={Paper} elevation={3}>
@@ -57,8 +121,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
             {[
               "Project",
               "Service Name",
-              "Status",
-              "Last Block Processed",
+              "Status (Chains)",
               "GraphQL",
               "Actions",
             ].map((header) => (
@@ -79,28 +142,37 @@ const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
                   <IconButton
                     aria-label="expand row"
                     size="small"
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => toggleRow(squid.name)}
                   >
-                    {isOpen ? (
+                    {isOpen[squid.name] ? (
                       <KeyboardArrowUpIcon />
                     ) : (
                       <KeyboardArrowDownIcon />
                     )}
                   </IconButton>
                 </TableCell>
-                <TableCell>{parseProjectName(squid.name)}</TableCell>
+                <TableCell>
+                  <strong>{parseProjectName(squid.name)}</strong>
+                </TableCell>
                 <TableCell>{squid.service_name}</TableCell>
                 <TableCell>
-                  {renderStatusBadge(
-                    squid.metrics.ETHEREUM.sqd_processor_sync_eta_seconds === 0
-                      ? "Synced"
-                      : "Indexing",
-                    "green"
+                  {Object.entries(squid.metrics).map(
+                    ([chain, chainMetrics]) => (
+                      <div key={chain} style={{ marginBottom: "4px" }}>
+                        <strong style={{ paddingRight: 8 }}>
+                          {renameNetwork(chain as Network)}:
+                        </strong>
+                        {renderStatusBadge(
+                          chainMetrics.sqd_processor_sync_eta_seconds === 0
+                            ? "Synced"
+                            : "Indexing",
+                          chainMetrics.sqd_processor_sync_eta_seconds === 0
+                            ? "green"
+                            : "orange"
+                        )}
+                      </div>
+                    )
                   )}
-                </TableCell>
-                <TableCell>
-                  {squid.metrics.ETHEREUM.sqd_processor_last_block} /{" "}
-                  {squid.metrics.ETHEREUM.sqd_processor_chain_height}
                 </TableCell>
                 <TableCell>
                   <IconButton
@@ -126,42 +198,68 @@ const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
               <TableRow>
                 <TableCell
                   style={{ paddingBottom: 0, paddingTop: 0 }}
-                  colSpan={7}
+                  colSpan={6}
                 >
-                  <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                  <Collapse
+                    in={isOpen[squid.name]}
+                    timeout="auto"
+                    unmountOnExit
+                  >
                     <Box sx={{ margin: 1 }}>
                       <Typography variant="h6" gutterBottom component="div">
-                        Details
+                        Schema Data
                       </Typography>
-                      <Table size="small" aria-label="details">
+                      <Table size="small" aria-label="schema-data">
+                        <TableBody>
+                          <TableRow>
+                            <TableCell sx={{ paddingBottom: 3 }}>
+                              <Box sx={{ marginBottom: 1 }}>
+                                <strong>Writing to Schema:</strong>{" "}
+                                {squid.schema_name}
+                              </Box>
+                              <Box sx={{ marginBottom: 1 }}>
+                                <strong>Is Active Schema:</strong>{" "}
+                                {squid.schema_name ===
+                                squid.project_active_schema
+                                  ? "YES"
+                                  : "NO"}
+                              </Box>
+                              <Box sx={{ marginBottom: 1 }}>
+                                <strong>Project Active Schema:</strong>{" "}
+                                {squid.project_active_schema}
+                              </Box>
+                              <Box sx={{ marginBottom: 1 }}>
+                                <strong>Version:</strong> {squid.version}
+                              </Box>
+                              <Box>
+                                <strong>Created At:</strong>{" "}
+                                {new Date(squid.created_at).toLocaleString()}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                      <Typography
+                        variant="h6"
+                        gutterBottom
+                        component="div"
+                        sx={{ paddingTop: 3 }}
+                      >
+                        Chain Data
+                      </Typography>
+                      <Table size="small" aria-label="chain-data">
                         <TableHead>
                           <TableRow>
-                            <TableCell>Schema Name</TableCell>
-                            <TableCell>Project Active Schema</TableCell>
+                            <TableCell>Chain</TableCell>
+                            <TableCell>Sync ETA (Seconds)</TableCell>
                             <TableCell>Speed</TableCell>
-                            <TableCell>Version</TableCell>
-                            <TableCell>Created At</TableCell>
-                            <TableCell>Service Health</TableCell>
+                            <TableCell>Last Block Processed</TableCell>
+                            <TableCell>Status</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          <TableRow>
-                            <TableCell>{squid.schema_name}</TableCell>
-                            <TableCell>{squid.project_active_schema}</TableCell>
-                            <TableCell>
-                              {squid.metrics.ETHEREUM.sqd_processor_mapping_blocks_per_second.toFixed(
-                                2
-                              )}{" "}
-                              blocks/s
-                            </TableCell>
-                            <TableCell>{squid.version}</TableCell>
-                            <TableCell>
-                              {new Date(squid.created_at).toLocaleString()}
-                            </TableCell>
-                            <TableCell>
-                              {renderStatusBadge(squid.health_status, "blue")}
-                            </TableCell>
-                          </TableRow>
+                          {renderChainData(squid.metrics, Network.ETHEREUM)}
+                          {renderChainData(squid.metrics, Network.MATIC)}
                         </TableBody>
                       </Table>
                     </Box>
@@ -177,8 +275,14 @@ const SquidsTable: React.FC<SquidsTableProps> = ({ squids }) => {
         open={open}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleMenuClose}>Promote to Prod</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Stop</MenuItem>
+        <MenuItem
+          onClick={() => !!selectedSquid && handlePromote(selectedSquid)}
+        >
+          Promote to Prod
+        </MenuItem>
+        <MenuItem onClick={() => !!selectedSquid && handleStop(selectedSquid)}>
+          Stop
+        </MenuItem>
       </Menu>
     </TableContainer>
   )

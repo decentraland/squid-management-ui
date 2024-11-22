@@ -1,4 +1,6 @@
-export interface Metrics {
+import { Network } from "@dcl/schemas"
+
+export interface SquidMetrics {
   sqd_processor_sync_eta_seconds: number
   sqd_processor_mapping_blocks_per_second: number
   sqd_processor_last_block: number
@@ -11,8 +13,8 @@ export interface Squid {
   schema_name: string
   project_active_schema: string
   metrics: {
-    ETHEREUM: Metrics
-    MATIC: Metrics
+    [Network.ETHEREUM]: SquidMetrics
+    [Network.MATIC]: SquidMetrics
   }
   version: number
   created_at: string
