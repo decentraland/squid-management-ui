@@ -31,7 +31,8 @@ export const useSquids = (
   const promoteSquid = async (id: string): Promise<void> => {
     try {
       const response = await fetch(
-        `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/promote`
+        `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/promote`,
+        { method: "PUT" }
       )
       if (!response.ok) {
         throw new Error("Failed to promote squid")
@@ -45,7 +46,8 @@ export const useSquids = (
   const stopSquid = async (id: string): Promise<void> => {
     try {
       const response = await fetch(
-        `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/stop`
+        `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/stop`,
+        { method: "PUT" }
       )
       if (!response.ok) {
         throw new Error("Failed to stop squid")
