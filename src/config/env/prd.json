@@ -1,1 +1,3 @@
-{}
+{
+  "SQUID_MANAGEMENT_SERVER": "https://squid-management-server.decentraland.org"
+}

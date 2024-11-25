@@ -1,5 +1,5 @@
 {
-  "name": "@dcl/{{project_name}}-site",
+  "name": "@dcl/squid-management-ui-site",
   "version": "0.0.1",
   "description": "Starter template for Decentraland dApps Repositories",
   "main": "index.js",
@@ -34,8 +34,13 @@
     "npm": "8.* || 9.*"
   },
   "dependencies": {
+    "@dcl/schemas": "^15.1.1",
     "@dcl/ui-env": "^1.4.0",
-    "decentraland-ui2": "^0.0.2",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.7",
+    "@mui/material": "^6.1.7",
+    "decentraland-ui2": "^0.6.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -63,7 +68,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^7.15.0",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "vite-plugin-svgr": "^4.3.0"
   },
   "overrides": {
     "@types/node": "20.8.3"

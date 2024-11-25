@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       packageVersion:
-        description: "NPM Version of the release (@dcl/{{project_name}}-site)"
+        description: "NPM Version of the release (@dcl/squid-management-ui-site)"
         required: true
         default: ""
       deploymentEnvironment:
@@ -36,11 +36,11 @@ jobs:
           sha: ${{ github.sha }}
 
           # CDN information
-          packageName: "@dcl/{{project_name}}-site"
+          packageName: "@dcl/squid-management-ui-site"
           packageVersion: ${{ github.event.inputs.packageVersion }}
 
           # Rollout information
-          deploymentPath: "{{project_name}}"
+          deploymentPath: "squid-management-ui"
           deploymentEnvironment: ${{ github.event.inputs.deploymentEnvironment }}
           deploymentName: "_site"
           percentage: ${{ github.event.inputs.rolloutPercentage }}
