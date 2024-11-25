@@ -13,7 +13,10 @@ export const useSquids = (
     const fetchSquids = async () => {
       try {
         const response = await fetch(
-          `${config.get("SQUID_MANAGEMENT_SERVER")}/list`
+          `${config.get("SQUID_MANAGEMENT_SERVER")}/list`,
+          {
+            credentials: "include",
+          }
         )
         const data: Squid[] = await response.json()
         setSquids(data)
@@ -32,7 +35,7 @@ export const useSquids = (
     try {
       const response = await fetch(
         `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/promote`,
-        { method: "PUT" }
+        { method: "PUT", credentials: "include" }
       )
       if (!response.ok) {
         throw new Error("Failed to promote squid")
@@ -47,7 +50,7 @@ export const useSquids = (
     try {
       const response = await fetch(
         `${config.get("SQUID_MANAGEMENT_SERVER")}/${id}/stop`,
-        { method: "PUT" }
+        { method: "PUT", credentials: "include" }
       )
       if (!response.ok) {
         throw new Error("Failed to stop squid")
