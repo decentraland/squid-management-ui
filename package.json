@@ -8,7 +8,7 @@
     "init": "./start.sh && npm run husky-setup",
     "dev": "vite",
     "start": "vite",
-    "prebuild": "node scripts/prebuild.js",
+    "prebuild": "node scripts/prebuild.cjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "jest",
@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/decentraland/dapps-template/issues"
   },
-  "homepage": "https://github.com/decentraland/dapps-template#readme",
+  "homepage": "",
   "engines": {
     "node": "20.*",
     "npm": "8.* || 9.*"
@@ -46,12 +46,13 @@
   },
   "devDependencies": {
     "@dcl/eslint-config": "^2.2.1",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "@typescript-eslint/parser": "^7.15.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-jest": "^3.0.2",

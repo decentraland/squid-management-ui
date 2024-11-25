@@ -20,7 +20,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["@types/node", "@types/jest"],
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src"]
