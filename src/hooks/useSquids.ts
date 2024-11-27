@@ -9,25 +9,25 @@ export const useSquids = (
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchSquids = async () => {
-      try {
-        const response = await fetch(
-          `${config.get("SQUID_MANAGEMENT_SERVER")}/list`,
-          {
-            credentials: "include",
-          }
-        )
-        const data: Squid[] = await response.json()
-        setSquids(data)
-      } catch (err) {
-        setError("Failed to fetch squids")
-        showMessage("Failed to fetch squids", "error")
-      } finally {
-        setLoading(false)
-      }
+  const fetchSquids = async () => {
+    try {
+      const response = await fetch(
+        `${config.get("SQUID_MANAGEMENT_SERVER")}/list`,
+        {
+          credentials: "include",
+        }
+      )
+      const data: Squid[] = await response.json()
+      setSquids(data)
+    } catch (err) {
+      setError("Failed to fetch squids")
+      showMessage("Failed to fetch squids", "error")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchSquids()
   }, [showMessage])
 
@@ -41,6 +41,7 @@ export const useSquids = (
         throw new Error("Failed to promote squid")
       }
       showMessage(`Squid ${id} promoted successfully!`, "success")
+      fetchSquids()
     } catch (err) {
       showMessage(`Failed to promote squid: ${id}`, "error")
     }
@@ -55,11 +56,14 @@ export const useSquids = (
       if (!response.ok) {
         throw new Error("Failed to stop squid")
       }
-      showMessage(`Squid ${id} stopped successfully!`, "success")
+      showMessage(
+        `Squid ${id} stop triggered! Wait a couple of minutes for the squid to stop.`,
+        "success"
+      )
     } catch (err) {
       showMessage(`Failed to stop squid: ${id}`, "error")
     }
   }
 
-  return { squids, loading, error, promoteSquid, stopSquid }
+  return { squids, loading, error, promoteSquid, stopSquid, fetchSquids }
 }
