@@ -45,6 +45,25 @@ const renderStatusBadge = (status: string, color: string): JSX.Element => (
   <Chip label={status} size="small" sx={{ bgcolor: color, color: "#fff" }} />
 )
 
+const getRelativeTime = (date: string): string => {
+  const now = new Date()
+  const past = new Date(date)
+  const diffMs = now.getTime() - past.getTime()
+  const diffMins = Math.floor(diffMs / (60 * 1000))
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000))
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000))
+  const diffWeeks = Math.floor(diffDays / 7)
+  const diffMonths = Math.floor(diffDays / 30)
+  const diffYears = Math.floor(diffDays / 365)
+
+  if (diffMins < 60) return `${diffMins} minutes ago`
+  if (diffHours < 24) return `${diffHours} hours ago`
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffWeeks < 4) return `${diffWeeks} weeks ago`
+  if (diffMonths < 12) return `${diffMonths} months ago`
+  return `${diffYears} years ago`
+}
+
 const SquidsTable: React.FC<SquidsTableProps> = ({
   squids,
   promoteSquid,
@@ -286,9 +305,9 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                 <Box>
                                   <strong>Created At:</strong>{" "}
                                   {squid.created_at
-                                    ? new Date(
+                                    ? `${new Date(
                                         squid.created_at
-                                      ).toLocaleString()
+                                      ).toLocaleString()} (${getRelativeTime(squid.created_at)})`
                                     : "-"}
                                 </Box>
                               </TableCell>
