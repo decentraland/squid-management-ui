@@ -1,5 +1,6 @@
 import { Fragment, useRef, useState } from "react"
 import { Network } from "@dcl/schemas"
+import { Env } from "@dcl/ui-env"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
@@ -20,6 +21,7 @@ import {
   TableRow,
   Typography,
 } from "decentraland-ui2"
+import { config } from "../config"
 import { Squid, SquidMetrics } from "../types"
 import { getGraphQLEndpoint } from "../utils"
 
@@ -33,7 +35,10 @@ const parseProjectName = (name: string): string =>
   name.split("-squid-server-")[0]
 
 const renameNetwork = (network: Network): string => {
-  return network === Network.MATIC ? "POLYGON" : network
+  const isDev = config.is(Env.DEVELOPMENT)
+  return network === Network.MATIC
+    ? `POLYGON ${isDev ? "AMOY" : ""}`
+    : `${network} ${isDev ? "SEPOLIA" : ""}`
 }
 
 const renderStatusBadge = (status: string, color: string): JSX.Element => (
@@ -346,7 +351,10 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
         </MenuItem>
         <MenuItem
           onClick={() => !!selectedSquid && handleStop(selectedSquid.name)}
-          disabled={!selectedSquid?.metrics}
+          disabled={
+            !selectedSquid?.metrics ||
+            selectedSquid?.schema_name === selectedSquid?.project_active_schema
+          }
         >
           Stop
         </MenuItem>

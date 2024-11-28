@@ -1,14 +1,17 @@
 import { useCallback, useState } from "react"
+import { Env } from "@dcl/ui-env"
 import { ThemeProvider, dark } from "decentraland-ui2/dist/theme"
 import { Alert, Box, Snackbar, Toolbar, Typography } from "@mui/material"
 import Sidebar from "./components/Sidebar"
 import SquidsTable from "./components/SquidsTable"
 import TopBar from "./components/TopBar"
+import { config } from "./config"
 import { useSquids } from "./hooks/useSquids"
 
 const drawerWidth = 240
 
 const App = () => {
+  const isDev = config.is(Env.DEVELOPMENT)
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -60,7 +63,7 @@ const App = () => {
         >
           <Toolbar />
           <Typography variant="h5" gutterBottom sx={{ paddingBottom: 2 }}>
-            Squids
+            {isDev ? "Dev" : "Prod"} Squids
           </Typography>
           {loading && <Typography>Loading...</Typography>}
           {error && <Typography color="error">{error}</Typography>}
