@@ -37,8 +37,8 @@ const parseProjectName = (name: string): string =>
 const renameNetwork = (network: Network): string => {
   const isDev = config.is(Env.DEVELOPMENT)
   return network === Network.MATIC
-    ? `POLYGON ${isDev ? "AMOY" : ""}`
-    : `${network} ${isDev ? "SEPOLIA" : ""}`
+    ? `POLYGON ${isDev ? "AMOY" : "MAINNET"}`
+    : `${network} ${isDev ? "SEPOLIA" : "MAINNET"}`
 }
 
 const renderStatusBadge = (status: string, color: string): JSX.Element => (
