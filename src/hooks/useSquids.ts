@@ -18,7 +18,9 @@ export const useSquids = (
         }
       )
       const data: Squid[] = await response.json()
-      setSquids(data)
+      setSquids(
+        data.sort((a, b) => a.service_name.localeCompare(b.service_name))
+      )
     } catch (err) {
       setError("Failed to fetch squids")
       showMessage("Failed to fetch squids", "error")
