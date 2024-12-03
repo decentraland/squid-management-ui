@@ -1,7 +1,14 @@
 import { useCallback, useState } from "react"
 import { Env } from "@dcl/ui-env"
 import { ThemeProvider, dark } from "decentraland-ui2/dist/theme"
-import { Alert, Box, Snackbar, Toolbar, Typography } from "@mui/material"
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Snackbar,
+  Toolbar,
+  Typography,
+} from "@mui/material"
 import Sidebar from "./components/Sidebar"
 import SquidsTable from "./components/SquidsTable"
 import TopBar from "./components/TopBar"
@@ -65,7 +72,17 @@ const App = () => {
           <Typography variant="h5" gutterBottom sx={{ paddingBottom: 2 }}>
             {isDev ? "Dev" : "Prod"} Squids
           </Typography>
-          {loading && <Typography>Loading...</Typography>}
+          {loading && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
             <SquidsTable
