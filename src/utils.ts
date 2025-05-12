@@ -57,13 +57,13 @@ export const getExpectedNetworks = (serviceName: string): Network[] => {
 }
 
 /**
- * Determines if a squid is fully operational, partially working, or stopped
+ * Determines if a squid is fully operational, indexing, partially working, or stopped
  * @param squid The squid object to evaluate
  * @returns Status indicating operational state
  */
 export const getSquidOperationalStatus = (
   squid: Squid
-): "fully-operational" | "partially-working" | "stopped" => {
+): "fully-operational" | "indexing" | "partially-working" | "stopped" => {
   // If service is not running at all
   if (Object.keys(squid.metrics).length === 0) {
     return "stopped"
@@ -76,6 +76,15 @@ export const getSquidOperationalStatus = (
   const isFullyOperational = expectedNetworks.every((network) =>
     activeNetworks.includes(network)
   )
+
+  // Check if any network is still indexing
+  const isAnyNetworkIndexing = Object.values(squid.metrics).some(
+    (metrics) => metrics.sqd_processor_sync_eta_seconds > 0
+  )
+
+  if (isAnyNetworkIndexing) {
+    return "indexing"
+  }
 
   if (isFullyOperational) {
     return "fully-operational"

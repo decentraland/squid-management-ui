@@ -43,6 +43,7 @@ const ROW_BACKGROUND_COLORS = {
   "fully-operational": "rgba(46, 204, 113, 0.1)", // Light green for fully operational
   "partially-working": "rgba(241, 196, 15, 0.1)", // Light yellow for partially working
   stopped: "rgba(231, 76, 60, 0.1)", // Light red for stopped
+  indexing: "rgba(241, 196, 15, 0.1)", // Light yellow for indexing
 }
 
 // No live service background color
@@ -242,7 +243,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                   const isServiceRunning = Object.keys(squid.metrics).length > 0
                   const operationalStatus = getSquidOperationalStatus(squid)
 
-                  // Determine background color based on operational status
+                  // Determine background color
                   const backgroundColor = !projectHasLiveService
                     ? NO_LIVE_SERVICE_COLOR
                     : ROW_BACKGROUND_COLORS[operationalStatus]
