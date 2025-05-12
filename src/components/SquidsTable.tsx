@@ -5,6 +5,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
+import WarningIcon from "@mui/icons-material/Warning"
 import {
   Box,
   Chip,
@@ -19,11 +20,17 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "decentraland-ui2"
 import { config } from "../config"
 import { Squid, SquidMetrics } from "../types"
-import { getGraphQLEndpoint } from "../utils"
+import {
+  getGraphQLEndpoint,
+  getSquidOperationalStatus,
+  hasLiveService,
+  parseProjectName,
+} from "../utils"
 
 interface SquidsTableProps {
   squids: Squid[]
@@ -31,8 +38,19 @@ interface SquidsTableProps {
   stopSquid: (id: string) => Promise<void>
 }
 
-const parseProjectName = (name: string): string =>
-  name.split("-squid-server-")[0]
+// Row background colors based on operational status
+const ROW_BACKGROUND_COLORS = {
+  "fully-operational": "rgba(46, 204, 113, 0.1)", // Light green for fully operational
+  "partially-working": "rgba(241, 196, 15, 0.1)", // Light yellow for partially working
+  stopped: "rgba(231, 76, 60, 0.1)", // Light red for stopped
+}
+
+// No live service background color
+const NO_LIVE_SERVICE_COLOR = "rgba(241, 196, 15, 0.1)" // Light yellow
+
+const PROJECT_ROW_SEPARATOR = {
+  borderTop: "3px solid #eee",
+}
 
 const renameNetwork = (network: Network): string => {
   const isDev = config.is(Env.DEVELOPMENT)
@@ -159,12 +177,47 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {squids.map((squid) => {
+          {squids.map((squid, idx) => {
             const isServiceRunning = Object.keys(squid.metrics).length > 0
+            const operationalStatus = getSquidOperationalStatus(squid)
+            const projectName = parseProjectName(squid.name)
+            const projectHasLiveService = hasLiveService(squids, projectName)
+
+            // Determine background color based on service status and project having a live service
+            const backgroundColor = !projectHasLiveService
+              ? NO_LIVE_SERVICE_COLOR
+              : ROW_BACKGROUND_COLORS[operationalStatus]
+
+            // Add separator if this is the first row of a new project
+            const prevProjectName =
+              idx > 0 ? parseProjectName(squids[idx - 1].name) : null
+            const isFirstOfProject =
+              idx === 0 || projectName !== prevProjectName
+            const rowSx = {
+              "& > *": { borderBottom: "unset" },
+              backgroundColor,
+              ...(isFirstOfProject ? PROJECT_ROW_SEPARATOR : {}),
+            }
+
             return (
               <Fragment key={squid.name}>
-                <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
+                <TableRow sx={rowSx}>
                   <TableCell>
+                    {!projectHasLiveService && (
+                      <Tooltip
+                        title="This project doesn't have a promoted version"
+                        arrow
+                      >
+                        <WarningIcon
+                          sx={{
+                            color: "orange",
+                            fontSize: "1.2rem",
+                            verticalAlign: "middle",
+                            marginRight: 1,
+                          }}
+                        />
+                      </Tooltip>
+                    )}
                     <IconButton
                       aria-label="expand row"
                       size="small"
@@ -178,7 +231,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                     </IconButton>
                   </TableCell>
                   <TableCell>
-                    <strong>{parseProjectName(squid.name)}</strong>
+                    <strong>{projectName}</strong>
                   </TableCell>
                   <TableCell>
                     <>
