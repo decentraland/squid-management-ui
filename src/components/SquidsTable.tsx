@@ -48,8 +48,33 @@ const ROW_BACKGROUND_COLORS = {
 // No live service background color
 const NO_LIVE_SERVICE_COLOR = "rgba(241, 196, 15, 0.1)" // Light yellow
 
-const PROJECT_ROW_SEPARATOR = {
-  borderTop: "3px solid #eee",
+// Project header styling
+const PROJECT_HEADER_STYLE = {
+  backgroundColor: "#333",
+  padding: "12px 16px",
+  fontWeight: "bold",
+  fontSize: "1rem",
+  borderTop: "1px solid #444",
+  borderBottom: "1px solid #444",
+  position: "relative",
+}
+
+// Project name text styling
+const PROJECT_NAME_STYLE = {
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+}
+
+// Warning icon styling
+const WARNING_ICON_STYLE = {
+  color: "orange",
+  fontSize: "1.2rem",
+  verticalAlign: "middle",
+  marginRight: 8,
+  position: "absolute",
+  left: -24,
+  top: "50%",
+  transform: "translateY(-50%)",
 }
 
 const renameNetwork = (network: Network): string => {
@@ -154,253 +179,278 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
     )
   }
 
+  // Group squids by project
+  const projectGroups = squids.reduce(
+    (groups, squid) => {
+      const projectName = parseProjectName(squid.name)
+      if (!groups[projectName]) {
+        groups[projectName] = []
+      }
+      groups[projectName].push(squid)
+      return groups
+    },
+    {} as Record<string, Squid[]>
+  )
+
   return (
     <TableContainer component={Paper} elevation={3}>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell />
-            {[
-              "Project",
-              "Service Name",
-              "Status (Chains)",
-              "GraphQL",
-              "Actions",
-            ].map((header) => (
-              <TableCell
-                key={header}
-                sx={{ fontWeight: "600", textTransform: "uppercase" }}
-              >
-                {header}
-              </TableCell>
-            ))}
+            <TableCell sx={{ fontWeight: "600", textTransform: "uppercase" }}>
+              SERVICE NAME
+            </TableCell>
+            <TableCell sx={{ fontWeight: "600", textTransform: "uppercase" }}>
+              STATUS (CHAINS)
+            </TableCell>
+            <TableCell sx={{ fontWeight: "600", textTransform: "uppercase" }}>
+              GRAPHQL
+            </TableCell>
+            <TableCell sx={{ fontWeight: "600", textTransform: "uppercase" }}>
+              ACTIONS
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {squids.map((squid, idx) => {
-            const isServiceRunning = Object.keys(squid.metrics).length > 0
-            const operationalStatus = getSquidOperationalStatus(squid)
-            const projectName = parseProjectName(squid.name)
+          {Object.entries(projectGroups).map(([projectName, projectSquids]) => {
             const projectHasLiveService = hasLiveService(squids, projectName)
 
-            // Determine background color based on service status and project having a live service
-            const backgroundColor = !projectHasLiveService
-              ? NO_LIVE_SERVICE_COLOR
-              : ROW_BACKGROUND_COLORS[operationalStatus]
-
-            // Add separator if this is the first row of a new project
-            const prevProjectName =
-              idx > 0 ? parseProjectName(squids[idx - 1].name) : null
-            const isFirstOfProject =
-              idx === 0 || projectName !== prevProjectName
-            const rowSx = {
-              "& > *": { borderBottom: "unset" },
-              backgroundColor,
-              ...(isFirstOfProject ? PROJECT_ROW_SEPARATOR : {}),
-            }
-
             return (
-              <Fragment key={squid.name}>
-                <TableRow sx={rowSx}>
-                  <TableCell>
+              <Fragment key={projectName}>
+                {/* Project header row */}
+                <TableRow>
+                  <TableCell width="48px" sx={PROJECT_HEADER_STYLE} />
+                  <TableCell
+                    colSpan={4}
+                    sx={{ ...PROJECT_HEADER_STYLE, ...PROJECT_NAME_STYLE }}
+                  >
                     {!projectHasLiveService && (
                       <Tooltip
                         title="This project doesn't have a promoted version"
                         arrow
                       >
-                        <WarningIcon
-                          sx={{
-                            color: "orange",
-                            fontSize: "1.2rem",
-                            verticalAlign: "middle",
-                            marginRight: 1,
-                          }}
-                        />
+                        <WarningIcon sx={WARNING_ICON_STYLE} />
                       </Tooltip>
                     )}
-                    <IconButton
-                      aria-label="expand row"
-                      size="small"
-                      onClick={() => toggleRow(squid.name)}
-                    >
-                      {isOpen[squid.name] ? (
-                        <KeyboardArrowUpIcon />
-                      ) : (
-                        <KeyboardArrowDownIcon />
-                      )}
-                    </IconButton>
-                  </TableCell>
-                  <TableCell>
-                    <strong>{projectName}</strong>
-                  </TableCell>
-                  <TableCell>
-                    <>
-                      {squid.service_name}
-                      {squid.schema_name === squid.project_active_schema ? (
-                        <Chip
-                          label={"LIVE"}
-                          sx={{
-                            backgroundColor: "green",
-                            color: "white",
-                            fontWeight: "bold",
-                            marginLeft: "8px",
-                          }}
-                          size="small"
-                        />
-                      ) : !isServiceRunning ? (
-                        <Chip
-                          label={"STOPPED"}
-                          sx={{
-                            backgroundColor: "red",
-                            color: "white",
-                            fontWeight: "bold",
-                            marginLeft: "8px",
-                          }}
-                          size="small"
-                        />
-                      ) : null}
-                    </>
-                  </TableCell>
-                  <TableCell>
-                    {Object.entries(squid.metrics).map(
-                      ([chain, chainMetrics]) => (
-                        <div key={chain} style={{ marginBottom: "4px" }}>
-                          <strong style={{ paddingRight: 8 }}>
-                            {renameNetwork(chain as Network)}:
-                          </strong>
-                          {renderStatusBadge(
-                            chainMetrics.sqd_processor_sync_eta_seconds === 0
-                              ? "Synced"
-                              : "Indexing",
-                            chainMetrics.sqd_processor_sync_eta_seconds === 0
-                              ? "green"
-                              : "orange"
-                          )}
-                        </div>
-                      )
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {isServiceRunning ? (
-                      <IconButton
-                        component="a"
-                        href={getGraphQLEndpoint(squid.service_name)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="open GraphQL"
-                      >
-                        <OpenInNewIcon />
-                      </IconButton>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    {isServiceRunning ? (
-                      <IconButton
-                        aria-label="more"
-                        onClick={() => handleMenuOpen(squid)}
-                        ref={(el) => (menuAnchorRefs.current[squid.name] = el)}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    ) : null}
+                    {projectName}
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell
-                    style={{ paddingBottom: 0, paddingTop: 0 }}
-                    colSpan={6}
-                  >
-                    <Collapse
-                      in={isOpen[squid.name]}
-                      timeout="auto"
-                      unmountOnExit
-                    >
-                      <Box sx={{ margin: 1 }}>
-                        <Typography variant="h6" gutterBottom component="div">
-                          Schema Data
-                        </Typography>
-                        <Table size="small" aria-label="schema-data">
-                          <TableBody>
-                            <TableRow>
-                              <TableCell sx={{ paddingBottom: 3 }}>
-                                <Box sx={{ marginBottom: 1 }}>
-                                  <strong>Writing to Schema:</strong>{" "}
-                                  {squid.schema_name}
-                                </Box>
-                                <Box sx={{ marginBottom: 1 }}>
-                                  <strong>Is Active Schema:</strong>{" "}
-                                  <Chip
-                                    label={
-                                      squid.schema_name ===
-                                      squid.project_active_schema
-                                        ? "YES"
-                                        : "NO"
-                                    }
-                                    sx={{
-                                      backgroundColor:
-                                        squid.schema_name ===
-                                        squid.project_active_schema
-                                          ? "green"
-                                          : "red",
-                                      color: "white",
-                                      fontWeight: "bold",
-                                    }}
-                                    size="small"
-                                  />
-                                </Box>
-                                <Box sx={{ marginBottom: 1 }}>
-                                  <strong>Project Active Schema:</strong>{" "}
-                                  {squid.project_active_schema}
-                                </Box>
-                                <Box sx={{ marginBottom: 1 }}>
-                                  <strong>Version:</strong> {squid.version}
-                                </Box>
-                                <Box>
-                                  <strong>Created At:</strong>{" "}
-                                  {squid.created_at
-                                    ? `${new Date(
-                                        squid.created_at
-                                      ).toLocaleString()} (${getRelativeTime(squid.created_at)})`
-                                    : "-"}
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                        {isServiceRunning ? (
-                          <Box mb={4}>
-                            <Typography
-                              variant="h6"
-                              gutterBottom
-                              component="div"
-                              sx={{ paddingTop: 3 }}
-                            >
-                              Chain Data
-                            </Typography>
-                            <Table size="small" aria-label="chain-data">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Chain</TableCell>
-                                  <TableCell>Sync ETA (Seconds)</TableCell>
-                                  <TableCell>Speed</TableCell>
-                                  <TableCell>Last Block Processed</TableCell>
-                                  <TableCell>Status</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {renderChainData(
-                                  squid.metrics,
-                                  Network.ETHEREUM
+
+                {/* Service rows */}
+                {projectSquids.map((squid) => {
+                  const isServiceRunning = Object.keys(squid.metrics).length > 0
+                  const operationalStatus = getSquidOperationalStatus(squid)
+
+                  // Determine background color based on operational status
+                  const backgroundColor = !projectHasLiveService
+                    ? NO_LIVE_SERVICE_COLOR
+                    : ROW_BACKGROUND_COLORS[operationalStatus]
+
+                  return (
+                    <Fragment key={squid.name}>
+                      <TableRow sx={{ backgroundColor }}>
+                        <TableCell>
+                          <IconButton
+                            aria-label="expand row"
+                            size="small"
+                            onClick={() => toggleRow(squid.name)}
+                          >
+                            {isOpen[squid.name] ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon />
+                            )}
+                          </IconButton>
+                        </TableCell>
+                        <TableCell>
+                          <>
+                            {squid.service_name}
+                            {squid.schema_name ===
+                            squid.project_active_schema ? (
+                              <Chip
+                                label={"LIVE"}
+                                sx={{
+                                  backgroundColor: "green",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  marginLeft: "8px",
+                                }}
+                                size="small"
+                              />
+                            ) : !isServiceRunning ? (
+                              <Chip
+                                label={"STOPPED"}
+                                sx={{
+                                  backgroundColor: "red",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  marginLeft: "8px",
+                                }}
+                                size="small"
+                              />
+                            ) : null}
+                          </>
+                        </TableCell>
+                        <TableCell>
+                          {Object.entries(squid.metrics).map(
+                            ([chain, chainMetrics]) => (
+                              <div key={chain} style={{ marginBottom: "4px" }}>
+                                <strong style={{ paddingRight: 8 }}>
+                                  {renameNetwork(chain as Network)}:
+                                </strong>
+                                {renderStatusBadge(
+                                  chainMetrics.sqd_processor_sync_eta_seconds ===
+                                    0
+                                    ? "Synced"
+                                    : "Indexing",
+                                  chainMetrics.sqd_processor_sync_eta_seconds ===
+                                    0
+                                    ? "green"
+                                    : "orange"
                                 )}
-                                {renderChainData(squid.metrics, Network.MATIC)}
-                              </TableBody>
-                            </Table>
-                          </Box>
-                        ) : null}
-                      </Box>
-                    </Collapse>
-                  </TableCell>
-                </TableRow>
+                              </div>
+                            )
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isServiceRunning ? (
+                            <IconButton
+                              component="a"
+                              href={getGraphQLEndpoint(squid.service_name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="open GraphQL"
+                            >
+                              <OpenInNewIcon />
+                            </IconButton>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          {isServiceRunning ? (
+                            <IconButton
+                              aria-label="more"
+                              onClick={() => handleMenuOpen(squid)}
+                              ref={(el) =>
+                                (menuAnchorRefs.current[squid.name] = el)
+                              }
+                            >
+                              <MoreVertIcon />
+                            </IconButton>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          style={{ paddingBottom: 0, paddingTop: 0 }}
+                          colSpan={5}
+                        >
+                          <Collapse
+                            in={isOpen[squid.name]}
+                            timeout="auto"
+                            unmountOnExit
+                          >
+                            <Box sx={{ margin: 1 }}>
+                              <Typography
+                                variant="h6"
+                                gutterBottom
+                                component="div"
+                              >
+                                Schema Data
+                              </Typography>
+                              <Table size="small" aria-label="schema-data">
+                                <TableBody>
+                                  <TableRow>
+                                    <TableCell sx={{ paddingBottom: 3 }}>
+                                      <Box sx={{ marginBottom: 1 }}>
+                                        <strong>Writing to Schema:</strong>{" "}
+                                        {squid.schema_name}
+                                      </Box>
+                                      <Box sx={{ marginBottom: 1 }}>
+                                        <strong>Is Active Schema:</strong>{" "}
+                                        <Chip
+                                          label={
+                                            squid.schema_name ===
+                                            squid.project_active_schema
+                                              ? "YES"
+                                              : "NO"
+                                          }
+                                          sx={{
+                                            backgroundColor:
+                                              squid.schema_name ===
+                                              squid.project_active_schema
+                                                ? "green"
+                                                : "red",
+                                            color: "white",
+                                            fontWeight: "bold",
+                                          }}
+                                          size="small"
+                                        />
+                                      </Box>
+                                      <Box sx={{ marginBottom: 1 }}>
+                                        <strong>Project Active Schema:</strong>{" "}
+                                        {squid.project_active_schema}
+                                      </Box>
+                                      <Box sx={{ marginBottom: 1 }}>
+                                        <strong>Version:</strong>{" "}
+                                        {squid.version}
+                                      </Box>
+                                      <Box>
+                                        <strong>Created At:</strong>{" "}
+                                        {squid.created_at
+                                          ? `${new Date(
+                                              squid.created_at
+                                            ).toLocaleString()} (${getRelativeTime(squid.created_at)})`
+                                          : "-"}
+                                      </Box>
+                                    </TableCell>
+                                  </TableRow>
+                                </TableBody>
+                              </Table>
+                              {isServiceRunning ? (
+                                <Box mb={4}>
+                                  <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    component="div"
+                                    sx={{ paddingTop: 3 }}
+                                  >
+                                    Chain Data
+                                  </Typography>
+                                  <Table size="small" aria-label="chain-data">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>Chain</TableCell>
+                                        <TableCell>
+                                          Sync ETA (Seconds)
+                                        </TableCell>
+                                        <TableCell>Speed</TableCell>
+                                        <TableCell>
+                                          Last Block Processed
+                                        </TableCell>
+                                        <TableCell>Status</TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {renderChainData(
+                                        squid.metrics,
+                                        Network.ETHEREUM
+                                      )}
+                                      {renderChainData(
+                                        squid.metrics,
+                                        Network.MATIC
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </Box>
+                              ) : null}
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>
+                  )
+                })}
               </Fragment>
             )
           })}
