@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 20.x
           cache: "npm"
-          cache-dependency-path: webapp/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: installing
         run: npm ci
