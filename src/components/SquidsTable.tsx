@@ -396,7 +396,13 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                         <strong>Version:</strong>{" "}
                                         {squid.version}
                                       </Box>
-                                      <Box sx={{ marginBottom: 1 }}>
+                                      <Box
+                                        sx={{
+                                          marginBottom: 1,
+                                          display: "flex",
+                                          alignItems: "center",
+                                        }}
+                                      >
                                         <strong>Image URI:</strong>{" "}
                                         {squid.image_uri ? (
                                           <Tooltip
@@ -405,11 +411,9 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                           >
                                             <code
                                               style={{
-                                                backgroundColor: "#f5f5f5",
                                                 padding: "2px 6px",
                                                 borderRadius: "4px",
                                                 fontSize: "0.85em",
-                                                fontFamily: "monospace",
                                                 cursor: "help",
                                                 maxWidth: "400px",
                                                 display: "inline-block",
