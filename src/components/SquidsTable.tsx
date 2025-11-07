@@ -396,6 +396,36 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                         <strong>Version:</strong>{" "}
                                         {squid.version}
                                       </Box>
+                                      <Box sx={{ marginBottom: 1 }}>
+                                        <strong>Image URI:</strong>{" "}
+                                        {squid.image_uri ? (
+                                          <Tooltip
+                                            title={squid.image_uri}
+                                            arrow
+                                          >
+                                            <code
+                                              style={{
+                                                backgroundColor: "#f5f5f5",
+                                                padding: "2px 6px",
+                                                borderRadius: "4px",
+                                                fontSize: "0.85em",
+                                                fontFamily: "monospace",
+                                                cursor: "help",
+                                                maxWidth: "400px",
+                                                display: "inline-block",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                whiteSpace: "nowrap",
+                                                verticalAlign: "middle",
+                                              }}
+                                            >
+                                              {squid.image_uri}
+                                            </code>
+                                          </Tooltip>
+                                        ) : (
+                                          "N/A"
+                                        )}
+                                      </Box>
                                       <Box>
                                         <strong>Created At:</strong>{" "}
                                         {squid.created_at

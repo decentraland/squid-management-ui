@@ -20,4 +20,5 @@ export interface Squid {
   created_at: string
   health_status: string
   service_status: string
+  image_uri?: string
 }
