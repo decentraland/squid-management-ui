@@ -14,7 +14,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/decentraland/dapps-template.git"
+    "url": "https://github.com/decentraland/squid-management-ui.git"
   },
   "homepage": ""
 }
