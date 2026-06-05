@@ -30,8 +30,8 @@
   },
   "homepage": "",
   "engines": {
-    "node": "20.*",
-    "npm": "8.* || 9.*"
+    "node": ">=20",
+    "npm": ">=8"
   },
   "dependencies": {
     "@dcl/schemas": "^15.1.1",
