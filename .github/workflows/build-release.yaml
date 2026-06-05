@@ -8,14 +8,18 @@ on:
     types:
       - created
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v6
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -41,10 +45,8 @@ jobs:
         with:
           cwd: './dist'
           deterministic-snapshot: true
-          provenance: false
+          provenance: true
           registry-url: 'https://registry.npmjs.org'
           access: public
           gitlab-token: ${{ secrets.GITLAB_CDN_DEPLOYER_TOKEN }}
           gitlab-pipeline-url: ${{ secrets.GITLAB_CDN_DEPLOYER_URL }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
