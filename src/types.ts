@@ -5,6 +5,9 @@ export interface SquidMetrics {
   sqd_processor_mapping_blocks_per_second: number
   sqd_processor_last_block: number
   sqd_processor_chain_height: number
+  // Derived percentage of the chain indexed (0–100). Optional so the UI keeps
+  // working against server versions that do not send it yet (computed as a fallback).
+  progress?: number
 }
 
 export interface Squid {
