@@ -1,7 +1,32 @@
 import { Network } from "@dcl/schemas"
 import { Env } from "@dcl/ui-env"
 import { config } from "./config"
-import { Squid } from "./types"
+import { Squid, SquidMetrics } from "./types"
+
+/**
+ * Returns the indexing progress for a chain as a percentage in the [0, 100] range.
+ * Uses the value provided by the server when present and falls back to computing it
+ * from the last processed block and the chain height (e.g. against older servers).
+ * @param metrics The metrics for a given chain
+ * @returns The progress percentage rounded to 2 decimals
+ */
+export const getSyncProgress = (metrics: SquidMetrics): number => {
+  const {
+    sqd_processor_last_block: lastBlock,
+    sqd_processor_chain_height: chainHeight,
+  } = metrics
+
+  const raw =
+    typeof metrics.progress === "number" && Number.isFinite(metrics.progress)
+      ? metrics.progress
+      : chainHeight > 0
+        ? (lastBlock / chainHeight) * 100
+        : 0
+
+  // Clamp and round both the server-provided and the computed value, so the
+  // progress bar and percentage never go out of the [0, 100] range.
+  return Math.min(100, Math.max(0, Math.round(raw * 100) / 100))
+}
 
 /**
  * Generates the GraphQL endpoint URL based on the service name.

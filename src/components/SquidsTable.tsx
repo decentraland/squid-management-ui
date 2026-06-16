@@ -11,6 +11,7 @@ import {
   Chip,
   Collapse,
   IconButton,
+  LinearProgress,
   Menu,
   MenuItem,
   Paper,
@@ -28,6 +29,7 @@ import { Squid, SquidMetrics } from "../types"
 import {
   getGraphQLEndpoint,
   getSquidOperationalStatus,
+  getSyncProgress,
   hasLiveService,
   parseProjectName,
 } from "../utils"
@@ -88,6 +90,37 @@ const renameNetwork = (network: Network): string => {
 const renderStatusBadge = (status: string, color: string): JSX.Element => (
   <Chip label={status} size="small" sx={{ bgcolor: color, color: "#fff" }} />
 )
+
+const renderProgressBar = (metrics: SquidMetrics): JSX.Element => {
+  const progress = getSyncProgress(metrics)
+  const isSynced = progress >= 100
+
+  return (
+    <Box sx={{ minWidth: 150 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 0.5,
+        }}
+      >
+        <Typography variant="caption" color="text.secondary">
+          {metrics.sqd_processor_last_block} /{" "}
+          {metrics.sqd_processor_chain_height}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {progress.toFixed(2)}%
+        </Typography>
+      </Box>
+      <LinearProgress
+        variant="determinate"
+        value={progress}
+        color={isSynced ? "success" : "warning"}
+        sx={{ height: 6, borderRadius: 3 }}
+      />
+    </Box>
+  )
+}
 
 const getRelativeTime = (date: string): string => {
   const now = new Date()
@@ -166,6 +199,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
           {chainMetrics.sqd_processor_last_block} /{" "}
           {chainMetrics.sqd_processor_chain_height}
         </TableCell>
+        <TableCell>{renderProgressBar(chainMetrics)}</TableCell>
         <TableCell>
           {renderStatusBadge(
             chainMetrics.sqd_processor_sync_eta_seconds === 0
@@ -296,21 +330,30 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                         <TableCell>
                           {Object.entries(squid.metrics).map(
                             ([chain, chainMetrics]) => (
-                              <div key={chain} style={{ marginBottom: "4px" }}>
-                                <strong style={{ paddingRight: 8 }}>
-                                  {renameNetwork(chain as Network)}:
-                                </strong>
-                                {renderStatusBadge(
-                                  chainMetrics.sqd_processor_sync_eta_seconds ===
-                                    0
-                                    ? "Synced"
-                                    : "Indexing",
-                                  chainMetrics.sqd_processor_sync_eta_seconds ===
-                                    0
-                                    ? "green"
-                                    : "orange"
-                                )}
-                              </div>
+                              <Box key={chain} sx={{ marginBottom: 1.5 }}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    marginBottom: 0.5,
+                                  }}
+                                >
+                                  <strong style={{ paddingRight: 8 }}>
+                                    {renameNetwork(chain as Network)}:
+                                  </strong>
+                                  {renderStatusBadge(
+                                    chainMetrics.sqd_processor_sync_eta_seconds ===
+                                      0
+                                      ? "Synced"
+                                      : "Indexing",
+                                    chainMetrics.sqd_processor_sync_eta_seconds ===
+                                      0
+                                      ? "green"
+                                      : "orange"
+                                  )}
+                                </Box>
+                                {renderProgressBar(chainMetrics)}
+                              </Box>
                             )
                           )}
                         </TableCell>
@@ -463,6 +506,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                         <TableCell>
                                           Last Block Processed
                                         </TableCell>
+                                        <TableCell>Progress</TableCell>
                                         <TableCell>Status</TableCell>
                                       </TableRow>
                                     </TableHead>

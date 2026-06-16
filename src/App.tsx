@@ -1,19 +1,24 @@
 import { useCallback, useState } from "react"
 import { Env } from "@dcl/ui-env"
+import PauseIcon from "@mui/icons-material/Pause"
+import PlayArrowIcon from "@mui/icons-material/PlayArrow"
 import { ThemeProvider, dark } from "decentraland-ui2/dist/theme"
 import {
   Alert,
   Box,
+  Chip,
   CircularProgress,
+  IconButton,
   Snackbar,
   Toolbar,
+  Tooltip,
   Typography,
 } from "@mui/material"
 import Sidebar from "./components/Sidebar"
 import SquidsTable from "./components/SquidsTable"
 import TopBar from "./components/TopBar"
 import { config } from "./config"
-import { useSquids } from "./hooks/useSquids"
+import { POLL_INTERVAL_MS, useSquids } from "./hooks/useSquids"
 
 const drawerWidth = 240
 
@@ -40,8 +45,16 @@ const App = () => {
     setSnackbar((prev) => ({ ...prev, open: false }))
   }
 
-  const { squids, loading, error, promoteSquid, stopSquid } =
-    useSquids(showMessage)
+  const {
+    squids,
+    loading,
+    error,
+    lastUpdated,
+    isPolling,
+    setIsPolling,
+    promoteSquid,
+    stopSquid,
+  } = useSquids(showMessage)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleDrawerToggle = () => {
@@ -69,9 +82,49 @@ const App = () => {
           }}
         >
           <Toolbar />
-          <Typography variant="h5" gutterBottom sx={{ paddingBottom: 2 }}>
-            {isDev ? "Dev" : "Prod"} Squids
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 1,
+              paddingBottom: 2,
+            }}
+          >
+            <Typography variant="h5">
+              {isDev ? "Dev" : "Prod"} Squids
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {lastUpdated && (
+                <Typography variant="caption" color="text.secondary">
+                  Updated {lastUpdated.toLocaleTimeString()}
+                </Typography>
+              )}
+              <Chip
+                size="small"
+                color={isPolling ? "success" : "default"}
+                label={
+                  isPolling
+                    ? `Live · every ${POLL_INTERVAL_MS / 1000}s`
+                    : "Paused"
+                }
+              />
+              <Tooltip
+                title={isPolling ? "Pause auto-refresh" : "Resume auto-refresh"}
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => setIsPolling((prev) => !prev)}
+                  aria-label={
+                    isPolling ? "pause auto-refresh" : "resume auto-refresh"
+                  }
+                >
+                  {isPolling ? <PauseIcon /> : <PlayArrowIcon />}
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
           {loading && (
             <Box
               sx={{
