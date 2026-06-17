@@ -27,6 +27,7 @@ import {
 import { config } from "../config"
 import { Squid, SquidMetrics } from "../types"
 import {
+  formatEta,
   getGraphQLEndpoint,
   getSquidOperationalStatus,
   getSyncProgress,
@@ -190,7 +191,9 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
     return (
       <TableRow>
         <TableCell>{renameNetwork(chain)}</TableCell>
-        <TableCell>{chainMetrics.sqd_processor_sync_eta_seconds}s</TableCell>
+        <TableCell>
+          {formatEta(chainMetrics.sqd_processor_sync_eta_seconds)}
+        </TableCell>
         <TableCell>
           {chainMetrics.sqd_processor_mapping_blocks_per_second.toFixed(2)}{" "}
           blocks/s
@@ -499,9 +502,7 @@ const SquidsTable: React.FC<SquidsTableProps> = ({
                                     <TableHead>
                                       <TableRow>
                                         <TableCell>Chain</TableCell>
-                                        <TableCell>
-                                          Sync ETA (Seconds)
-                                        </TableCell>
+                                        <TableCell>Sync ETA</TableCell>
                                         <TableCell>Speed</TableCell>
                                         <TableCell>
                                           Last Block Processed

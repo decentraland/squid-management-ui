@@ -29,6 +29,38 @@ export const getSyncProgress = (metrics: SquidMetrics): number => {
 }
 
 /**
+ * Formats a sync ETA given in seconds into a short, human-readable string.
+ * Shows the two most significant units (e.g. "1h 23m", "5m 12s", "45s") and
+ * returns "Synced" when there is no remaining time.
+ * @param seconds The estimated time to sync in seconds
+ * @returns A human-readable ETA
+ */
+export const formatEta = (seconds: number): string => {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return "Synced"
+  }
+
+  const total = Math.round(seconds)
+  const units = [
+    { value: Math.floor(total / 86400), label: "d" },
+    { value: Math.floor((total % 86400) / 3600), label: "h" },
+    { value: Math.floor((total % 3600) / 60), label: "m" },
+    { value: total % 60, label: "s" },
+  ]
+
+  const firstIndex = units.findIndex((unit) => unit.value > 0)
+  if (firstIndex === -1) {
+    return "Synced"
+  }
+
+  return units
+    .slice(firstIndex, firstIndex + 2)
+    .filter((unit) => unit.value > 0)
+    .map((unit) => `${unit.value}${unit.label}`)
+    .join(" ")
+}
+
+/**
  * Generates the GraphQL endpoint URL based on the service name.
  * @param serviceName The name of the squid service
  * @returns The GraphQL endpoint URL
