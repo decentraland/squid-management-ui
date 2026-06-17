@@ -1,12 +1,10 @@
 import { useCallback, useState } from "react"
 import { Env } from "@dcl/ui-env"
-import PauseIcon from "@mui/icons-material/Pause"
-import PlayArrowIcon from "@mui/icons-material/PlayArrow"
+import RefreshIcon from "@mui/icons-material/Refresh"
 import { ThemeProvider, dark } from "decentraland-ui2/dist/theme"
 import {
   Alert,
   Box,
-  Chip,
   CircularProgress,
   IconButton,
   Snackbar,
@@ -18,7 +16,7 @@ import Sidebar from "./components/Sidebar"
 import SquidsTable from "./components/SquidsTable"
 import TopBar from "./components/TopBar"
 import { config } from "./config"
-import { POLL_INTERVAL_MS, useSquids } from "./hooks/useSquids"
+import { useSquids } from "./hooks/useSquids"
 
 const drawerWidth = 240
 
@@ -48,12 +46,12 @@ const App = () => {
   const {
     squids,
     loading,
+    refreshing,
     error,
     lastUpdated,
-    isPolling,
-    setIsPolling,
     promoteSquid,
     stopSquid,
+    fetchSquids,
   } = useSquids(showMessage)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -101,27 +99,21 @@ const App = () => {
                   Updated {lastUpdated.toLocaleTimeString()}
                 </Typography>
               )}
-              <Chip
-                size="small"
-                color={isPolling ? "success" : "default"}
-                label={
-                  isPolling
-                    ? `Live · every ${POLL_INTERVAL_MS / 1000}s`
-                    : "Paused"
-                }
-              />
-              <Tooltip
-                title={isPolling ? "Pause auto-refresh" : "Resume auto-refresh"}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => setIsPolling((prev) => !prev)}
-                  aria-label={
-                    isPolling ? "pause auto-refresh" : "resume auto-refresh"
-                  }
-                >
-                  {isPolling ? <PauseIcon /> : <PlayArrowIcon />}
-                </IconButton>
+              <Tooltip title={refreshing ? "Refreshing…" : "Refresh"}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => fetchSquids()}
+                    disabled={refreshing}
+                    aria-label="refresh"
+                  >
+                    {refreshing ? (
+                      <CircularProgress size={18} />
+                    ) : (
+                      <RefreshIcon />
+                    )}
+                  </IconButton>
+                </span>
               </Tooltip>
             </Box>
           </Box>
