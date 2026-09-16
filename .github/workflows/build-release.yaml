@@ -24,7 +24,7 @@ jobs:
           node-version: 24
 
       - name: Set package.json version
-        uses: decentraland/oddish-action@0074f2d535c43b5c83f136525304a6277166d77f # @master
+        uses: decentraland/oddish-action@v1
         with:
           deterministic-snapshot: true
           only-update-versions: true
@@ -41,7 +41,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=6144'
 
       - name: Publish
-        uses: decentraland/oddish-action@0074f2d535c43b5c83f136525304a6277166d77f # @master
+        uses: decentraland/oddish-action@v1
         with:
           cwd: './dist'
           deterministic-snapshot: true
